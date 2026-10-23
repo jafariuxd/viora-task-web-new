@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.viora.task",
+      "sha256_cert_fingerprints": [
+        "0B:8A:F0:39:BD:5C:93:FB:20:E9:11:68:C6:60:C2:D5:A1:7B:24:C7:33:1B:1D:97:DA:90:19:D0:27:85:11:5C"
+      ]
+    }
+  }
+]

@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- پس‌زمینه اسکوئیرکل (Squircle) مشکی -->
+  <path d="M 256,0 C 448,0 512,64 512,256 C 512,448 448,512 256,512 C 64,512 0,448 0,256 C 0,64 64,0 256,0 Z" fill="#000000" />
+  
+  <!-- علامت تیک -->
+  <path d="M 157.5,256.5 L 220,319 L 354.5,184.5" stroke="#CCFF00" stroke-width="33" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -1,11 +1,22 @@
-<div align="center">
+# Viora Task (React Rewrite)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+This is a modern, premium Task Management application (Viora) originally built with Kotlin and Jetpack Compose, now rewritten in React with Vite and Tailwind CSS.
 
-  <h1>Built with AI Studio</h2>
+## Features Ported
+- **Home Screen**: Scrollable feed of tasks, weather widget, upcoming events widget, and task cards.
+- **Task Detail**: Full-screen modal with title editing, status selection, tags, and description.
+- **Styling**: Immersive dark theme, stark white cards, Viora Neon Lime accent (`#B4FF00`), and `SF Pro Display` typography.
+- **Responsive Layout**: Designed primarily for mobile dimensions but scales responsively.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Tech Stack
+- React 19 + TypeScript
+- Vite
+- Tailwind CSS
+- Lucide React (Icons)
+- Motion (Framer Motion for animations)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
+## How to Run
+```bash
+npm install
+npm run dev
+```
