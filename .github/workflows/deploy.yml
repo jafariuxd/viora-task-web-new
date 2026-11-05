@@ -1,34 +1,83 @@
-name: Build and Deploy to Server
+name: Deploy Viora
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: viora-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY_HOST: 185.231.59.45
+  DEPLOY_USER: root
+  DEPLOY_BASE: /var/www/viora-releases
 
 jobs:
-  deploy:
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Get code from repository
+      - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 22
+          cache: npm
 
-      - name: Install dependencies and build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Verify bundle
+        run: test -f dist/index.html
+
+  deploy:
+    name: Deploy
+    needs: build
+    # This job stays skipped until DEPLOY_SSH_KEY exists in repository secrets.
+    if: ${{ secrets.DEPLOY_SSH_KEY != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure deployment SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
-          npm install
-          npm run build
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          cat >> ~/.ssh/known_hosts <<'EOF'
+          185.231.59.45 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMxCBc8insHggqk4eOqtzkviFzPpI1DnwD9kpE8i4pO8
+          EOF
 
-      - name: Copy build files to server via SSH
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
-          source: "dist"
-          target: "/var/www/viora"
-          strip_components: 1
+      - name: Upload release
+        env:
+          RELEASE: ${{ env.DEPLOY_BASE }}/${{ github.sha }}
+        run: |
+          ssh -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$RELEASE'"
+          rsync -az --delete --delay-updates \
+            -e "ssh -o BatchMode=yes" \
+            dist/ "$DEPLOY_USER@$DEPLOY_HOST:$RELEASE/"
+
+      - name: Activate release atomically
+        env:
+          RELEASE: ${{ env.DEPLOY_BASE }}/${{ github.sha }}
+        run: |
+          ssh -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" "
+            set -eu
+            test -s '$RELEASE/index.html'
+            ln -s '$RELEASE' '$DEPLOY_BASE/.current-next'
+            mv -Tf '$DEPLOY_BASE/.current-next' '$DEPLOY_BASE/current'
+          "
